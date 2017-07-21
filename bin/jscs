@@ -29,9 +29,18 @@ var spawn = process.env.comspec ? function(command, args, options) {
     return spawn(command, args, options);
 };
 
+// 只提示强制规则, 并在message中显示规则名
 var fecs = spawn('fecs',
-    ['--silent', '--reporter=baidu', '--format=checkstyle', file],
-    {stdio: 'inherit'});
+    ['--silent', '--reporter=baidu', '--format=checkstyle', '--level=2', file]
+);
+
+fecs.stdout.on('data', data => {
+    const message = data.toString().replace(/" rule="([^"]*)"\/>/g, ' rule: $1"/>');
+    process.stdout.write(Buffer.from(message));
+});
+
+fecs.stderr.pipe(process.stderr);
+
 fecs.on('close', function() {
     // ignore
 });
